@@ -1,0 +1,4542 @@
+{
+  "shaoye": {
+    "label": "少夜版",
+    "version": 43,
+    "identity": "b8da78ac9dca86149827e4bc5c74ef5c",
+    "schemas": [
+      {
+        "type": "table",
+        "name": "android_metadata",
+        "tbl_name": "android_metadata",
+        "sql": "CREATE TABLE android_metadata (locale TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "ConversationEntity",
+        "tbl_name": "ConversationEntity",
+        "sql": "CREATE TABLE `ConversationEntity` (`id` TEXT NOT NULL, `assistant_id` TEXT NOT NULL DEFAULT '0950e2dc-9bd5-4801-afa3-aa887aa36b4e', `title` TEXT NOT NULL, `nodes` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `update_at` INTEGER NOT NULL, `suggestions` TEXT NOT NULL DEFAULT '[]', `is_pinned` INTEGER NOT NULL DEFAULT 0, `custom_system_prompt` TEXT NOT NULL DEFAULT '', `folder_id` TEXT NOT NULL DEFAULT '', `compression_summaries` TEXT NOT NULL DEFAULT '[]', `compressed_node_ids` TEXT NOT NULL DEFAULT '[]', `compression_revision` INTEGER NOT NULL DEFAULT 0, `send_compressed_summary` INTEGER NOT NULL DEFAULT 1, `compressed_summary` TEXT NOT NULL DEFAULT '', `compression_history` TEXT NOT NULL DEFAULT '[]', `conversation_config` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "MemoryEntity",
+        "tbl_name": "MemoryEntity",
+        "sql": "CREATE TABLE `MemoryEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `assistant_id` TEXT NOT NULL, `content` TEXT NOT NULL)"
+      },
+      {
+        "type": "table",
+        "name": "GenMediaEntity",
+        "tbl_name": "GenMediaEntity",
+        "sql": "CREATE TABLE `GenMediaEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `path` TEXT NOT NULL, `model_id` TEXT NOT NULL, `prompt` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `type` TEXT NOT NULL DEFAULT 'image_generation', `source_paths` TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "message_node",
+        "tbl_name": "message_node",
+        "sql": "CREATE TABLE `message_node` (`id` TEXT NOT NULL, `conversation_id` TEXT NOT NULL, `node_index` INTEGER NOT NULL, `messages` TEXT NOT NULL, `select_index` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversation_id`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "table",
+        "name": "managed_files",
+        "tbl_name": "managed_files",
+        "sql": "CREATE TABLE `managed_files` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `folder` TEXT NOT NULL, `relative_path` TEXT NOT NULL, `display_name` TEXT NOT NULL, `mime_type` TEXT NOT NULL, `size_bytes` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)"
+      },
+      {
+        "type": "table",
+        "name": "favorites",
+        "tbl_name": "favorites",
+        "sql": "CREATE TABLE `favorites` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `ref_key` TEXT NOT NULL, `ref_json` TEXT NOT NULL, `snapshot_json` TEXT NOT NULL, `meta_json` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "memory_bank",
+        "tbl_name": "memory_bank",
+        "sql": "CREATE TABLE `memory_bank` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `conversation_id` TEXT, `assistant_id` TEXT, `role` TEXT, `created_at` INTEGER NOT NULL, `date_group` TEXT, `vector_status` TEXT NOT NULL, `vector_retry_count` INTEGER NOT NULL, `embedding` TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "workspaces",
+        "tbl_name": "workspaces",
+        "sql": "CREATE TABLE `workspaces` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `root` TEXT NOT NULL, `shell_status` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `last_access_at` INTEGER, `tool_approvals` TEXT NOT NULL DEFAULT '{}', type TEXT NOT NULL DEFAULT 'LOCAL', ssh_config TEXT, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "conversation_folder",
+        "tbl_name": "conversation_folder",
+        "sql": "CREATE TABLE `conversation_folder` (`id` TEXT NOT NULL, `assistant_id` TEXT NOT NULL, `name` TEXT NOT NULL, `sort_index` INTEGER NOT NULL DEFAULT 0, `create_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "workflows",
+        "tbl_name": "workflows",
+        "sql": "CREATE TABLE `workflows` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `enabled` INTEGER NOT NULL DEFAULT 1, `definitionJson` TEXT NOT NULL, `createdAtMs` INTEGER NOT NULL, `updatedAtMs` INTEGER NOT NULL, `lastRunAtMs` INTEGER, `lastRunStatus` TEXT, `lastRunError` TEXT, `runsTodayCount` INTEGER NOT NULL DEFAULT 0, `runsTodayDate` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "workflow_runs",
+        "tbl_name": "workflow_runs",
+        "sql": "CREATE TABLE `workflow_runs` (`rowId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workflowId` TEXT NOT NULL, `firedAtMs` INTEGER NOT NULL, `status` TEXT NOT NULL, `durationMs` INTEGER NOT NULL, `errorMessage` TEXT, `outputSummary` TEXT, `stepsJson` TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "ssh_hosts",
+        "tbl_name": "ssh_hosts",
+        "sql": "CREATE TABLE `ssh_hosts` (`name` TEXT NOT NULL, `host` TEXT NOT NULL, `port` INTEGER NOT NULL, `user` TEXT NOT NULL, `password` TEXT, `privateKey` TEXT, `passphrase` TEXT, `createdAtMs` INTEGER NOT NULL, PRIMARY KEY(`name`))"
+      },
+      {
+        "type": "table",
+        "name": "security_audit_logs",
+        "tbl_name": "security_audit_logs",
+        "sql": "CREATE TABLE `security_audit_logs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `target` TEXT NOT NULL, `detail` TEXT NOT NULL, `status` TEXT NOT NULL)"
+      },
+      {
+        "type": "table",
+        "name": "message_reaction",
+        "tbl_name": "message_reaction",
+        "sql": "CREATE TABLE `message_reaction` (`id` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `messageId` TEXT NOT NULL, `actor` TEXT NOT NULL, `emoji` TEXT NOT NULL, `quote` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversationId`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "table",
+        "name": "room_master_table",
+        "tbl_name": "room_master_table",
+        "sql": "CREATE TABLE room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_data",
+        "tbl_name": "message_fts_data",
+        "sql": "CREATE TABLE 'message_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_idx",
+        "tbl_name": "message_fts_idx",
+        "sql": "CREATE TABLE 'message_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_content",
+        "tbl_name": "message_fts_content",
+        "sql": "CREATE TABLE 'message_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4, c5)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_docsize",
+        "tbl_name": "message_fts_docsize",
+        "sql": "CREATE TABLE 'message_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_config",
+        "tbl_name": "message_fts_config",
+        "sql": "CREATE TABLE 'message_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "serein_raw_revision",
+        "tbl_name": "serein_raw_revision",
+        "sql": "CREATE TABLE serein_raw_revision (\n    id TEXT NOT NULL PRIMARY KEY, assistantId TEXT NOT NULL, conversationId TEXT NOT NULL,\n    messageId TEXT NOT NULL, revision INTEGER NOT NULL, role TEXT NOT NULL, text TEXT NOT NULL,\n    createdAt TEXT NOT NULL, finishedAt TEXT, recordedAt INTEGER NOT NULL, origin TEXT NOT NULL, state TEXT NOT NULL,\n    FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE\n)"
+      },
+      {
+        "type": "table",
+        "name": "serein_raw_head",
+        "tbl_name": "serein_raw_head",
+        "sql": "CREATE TABLE serein_raw_head (\n    assistantId TEXT NOT NULL, conversationId TEXT NOT NULL, nodeId TEXT NOT NULL, messageId TEXT NOT NULL,\n    revisionId TEXT NOT NULL, nodeIndex INTEGER NOT NULL, variantIndex INTEGER NOT NULL, selected INTEGER NOT NULL,\n    PRIMARY KEY(assistantId,conversationId,nodeId,messageId),\n    FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE,\n    FOREIGN KEY(revisionId) REFERENCES serein_raw_revision(id) ON UPDATE NO ACTION ON DELETE CASCADE,\n    FOREIGN KEY(nodeId) REFERENCES message_node(id) ON UPDATE NO ACTION ON DELETE CASCADE\n)"
+      },
+      {
+        "type": "table",
+        "name": "serein_scene",
+        "tbl_name": "serein_scene",
+        "sql": "CREATE TABLE serein_scene (\n            assistantId TEXT NOT NULL, id TEXT NOT NULL, revision INTEGER NOT NULL,\n            title TEXT NOT NULL, body TEXT NOT NULL, cues TEXT NOT NULL, author TEXT NOT NULL,\n            createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL, deleted INTEGER NOT NULL,\n            PRIMARY KEY(assistantId,id))"
+      },
+      {
+        "type": "table",
+        "name": "serein_scene_revision",
+        "tbl_name": "serein_scene_revision",
+        "sql": "CREATE TABLE serein_scene_revision (\n            assistantId TEXT NOT NULL, sceneId TEXT NOT NULL, revision INTEGER NOT NULL,\n            title TEXT NOT NULL, body TEXT NOT NULL, cues TEXT NOT NULL, author TEXT NOT NULL, recordedAt INTEGER NOT NULL,\n            PRIMARY KEY(assistantId,sceneId,revision),\n            FOREIGN KEY(assistantId,sceneId) REFERENCES serein_scene(assistantId,id) ON UPDATE NO ACTION ON DELETE CASCADE)"
+      },
+      {
+        "type": "table",
+        "name": "serein_hook_snapshot",
+        "tbl_name": "serein_hook_snapshot",
+        "sql": "CREATE TABLE serein_hook_snapshot (\n            conversationId TEXT NOT NULL, userMessageId TEXT NOT NULL, fingerprint TEXT NOT NULL,\n            context TEXT NOT NULL, memoryIds TEXT NOT NULL, status TEXT NOT NULL, createdAt INTEGER NOT NULL, diagnostics TEXT NOT NULL DEFAULT '{}',\n            PRIMARY KEY(conversationId,userMessageId),\n            FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE)"
+      },
+      {
+        "type": "table",
+        "name": "serein_hook_delivery",
+        "tbl_name": "serein_hook_delivery",
+        "sql": "CREATE TABLE serein_hook_delivery (\n            conversationId TEXT NOT NULL, receiptId TEXT NOT NULL, configFingerprint TEXT NOT NULL,\n            memoryIds TEXT NOT NULL, deliveredAt INTEGER NOT NULL, PRIMARY KEY(conversationId,receiptId),\n            FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE)"
+      },
+      {
+        "type": "table",
+        "name": "serein_upload",
+        "tbl_name": "serein_upload",
+        "sql": "CREATE TABLE serein_upload (\n            id TEXT NOT NULL PRIMARY KEY, assistantId TEXT NOT NULL, conversationId TEXT NOT NULL,\n            nodeId TEXT NOT NULL, messageId TEXT NOT NULL, destination TEXT NOT NULL,\n            sourceHash TEXT NOT NULL, payload TEXT NOT NULL, status TEXT NOT NULL, error TEXT NOT NULL,\n            queuedAt INTEGER NOT NULL,\n            FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE)"
+      },
+      {
+        "type": "table",
+        "name": "usage_record",
+        "tbl_name": "usage_record",
+        "sql": "CREATE TABLE `usage_record` (\n            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n            `created_at` INTEGER NOT NULL, `source` TEXT NOT NULL,\n            `provider_id` TEXT, `model_id` TEXT, `model_name` TEXT,\n            `assistant_id` TEXT, `conversation_id` TEXT,\n            `prompt_tokens` INTEGER NOT NULL, `completion_tokens` INTEGER NOT NULL,\n            `cached_tokens` INTEGER NOT NULL, `total_tokens` INTEGER NOT NULL,\n            `usage_reported` INTEGER NOT NULL, `outcome` TEXT NOT NULL)"
+      },
+      {
+        "type": "table",
+        "name": "translation_history",
+        "tbl_name": "translation_history",
+        "sql": "CREATE TABLE `translation_history` (\n            `id` TEXT NOT NULL,\n            `source_text` TEXT NOT NULL,\n            `translated_text` TEXT NOT NULL,\n            `target_language` TEXT NOT NULL,\n            `model_id` TEXT NOT NULL,\n            `create_at` INTEGER NOT NULL,\n            PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_lookup",
+        "tbl_name": "message_fts_lookup",
+        "sql": "CREATE TABLE message_fts_lookup(fts_rowid INTEGER PRIMARY KEY, conversation_id TEXT NOT NULL, node_id TEXT NOT NULL)"
+      },
+      {
+        "type": "table",
+        "name": "serein_observation_outbox",
+        "tbl_name": "serein_observation_outbox",
+        "sql": "CREATE TABLE serein_observation_outbox (\n            id TEXT NOT NULL PRIMARY KEY, assistantId TEXT NOT NULL, conversationId TEXT NOT NULL,\n            destination TEXT NOT NULL, payload TEXT NOT NULL, createdAt INTEGER NOT NULL, error TEXT NOT NULL,\n            FOREIGN KEY(conversationId) REFERENCES ConversationEntity(id) ON UPDATE NO ACTION ON DELETE CASCADE)"
+      },
+      {
+        "type": "index",
+        "name": "index_message_node_conversation_id",
+        "tbl_name": "message_node",
+        "sql": "CREATE INDEX `index_message_node_conversation_id` ON `message_node` (`conversation_id`)"
+      },
+      {
+        "type": "index",
+        "name": "index_managed_files_relative_path",
+        "tbl_name": "managed_files",
+        "sql": "CREATE UNIQUE INDEX `index_managed_files_relative_path` ON `managed_files` (`relative_path`)"
+      },
+      {
+        "type": "index",
+        "name": "index_managed_files_folder",
+        "tbl_name": "managed_files",
+        "sql": "CREATE INDEX `index_managed_files_folder` ON `managed_files` (`folder`)"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_ref_key",
+        "tbl_name": "favorites",
+        "sql": "CREATE UNIQUE INDEX `index_favorites_ref_key` ON `favorites` (`ref_key`)"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_type",
+        "tbl_name": "favorites",
+        "sql": "CREATE INDEX `index_favorites_type` ON `favorites` (`type`)"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_created_at",
+        "tbl_name": "favorites",
+        "sql": "CREATE INDEX `index_favorites_created_at` ON `favorites` (`created_at`)"
+      },
+      {
+        "type": "index",
+        "name": "index_workspaces_root",
+        "tbl_name": "workspaces",
+        "sql": "CREATE UNIQUE INDEX `index_workspaces_root` ON `workspaces` (`root`)"
+      },
+      {
+        "type": "index",
+        "name": "index_workspaces_updated_at",
+        "tbl_name": "workspaces",
+        "sql": "CREATE INDEX `index_workspaces_updated_at` ON `workspaces` (`updated_at`)"
+      },
+      {
+        "type": "index",
+        "name": "index_conversation_folder_assistant_id",
+        "tbl_name": "conversation_folder",
+        "sql": "CREATE INDEX `index_conversation_folder_assistant_id` ON `conversation_folder` (`assistant_id`)"
+      },
+      {
+        "type": "index",
+        "name": "index_workflow_runs_workflowId_firedAtMs",
+        "tbl_name": "workflow_runs",
+        "sql": "CREATE INDEX `index_workflow_runs_workflowId_firedAtMs` ON `workflow_runs` (`workflowId`, `firedAtMs`)"
+      },
+      {
+        "type": "index",
+        "name": "index_security_audit_logs_timestamp",
+        "tbl_name": "security_audit_logs",
+        "sql": "CREATE INDEX `index_security_audit_logs_timestamp` ON `security_audit_logs` (`timestamp`)"
+      },
+      {
+        "type": "index",
+        "name": "index_message_reaction_conversationId",
+        "tbl_name": "message_reaction",
+        "sql": "CREATE INDEX `index_message_reaction_conversationId` ON `message_reaction` (`conversationId`)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_revision_conversationId",
+        "tbl_name": "serein_raw_revision",
+        "sql": "CREATE INDEX index_serein_raw_revision_conversationId ON serein_raw_revision(conversationId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_revision_assistantId_conversationId_messageId_revision",
+        "tbl_name": "serein_raw_revision",
+        "sql": "CREATE UNIQUE INDEX index_serein_raw_revision_assistantId_conversationId_messageId_revision ON serein_raw_revision(assistantId,conversationId,messageId,revision)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_head_conversationId",
+        "tbl_name": "serein_raw_head",
+        "sql": "CREATE INDEX index_serein_raw_head_conversationId ON serein_raw_head(conversationId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_head_revisionId",
+        "tbl_name": "serein_raw_head",
+        "sql": "CREATE INDEX index_serein_raw_head_revisionId ON serein_raw_head(revisionId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_head_nodeId",
+        "tbl_name": "serein_raw_head",
+        "sql": "CREATE INDEX index_serein_raw_head_nodeId ON serein_raw_head(nodeId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_raw_head_assistantId_conversationId_nodeIndex",
+        "tbl_name": "serein_raw_head",
+        "sql": "CREATE INDEX index_serein_raw_head_assistantId_conversationId_nodeIndex ON serein_raw_head(assistantId,conversationId,nodeIndex)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_scene_assistantId_deleted_updatedAt",
+        "tbl_name": "serein_scene",
+        "sql": "CREATE INDEX index_serein_scene_assistantId_deleted_updatedAt ON serein_scene(assistantId,deleted,updatedAt)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_upload_conversationId",
+        "tbl_name": "serein_upload",
+        "sql": "CREATE INDEX index_serein_upload_conversationId ON serein_upload(conversationId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_upload_destination_status",
+        "tbl_name": "serein_upload",
+        "sql": "CREATE INDEX index_serein_upload_destination_status ON serein_upload(destination,status)"
+      },
+      {
+        "type": "index",
+        "name": "index_usage_record_created_at",
+        "tbl_name": "usage_record",
+        "sql": "CREATE INDEX `index_usage_record_created_at` ON `usage_record` (`created_at`)"
+      },
+      {
+        "type": "index",
+        "name": "index_usage_record_conversation_id_source_id",
+        "tbl_name": "usage_record",
+        "sql": "CREATE INDEX `index_usage_record_conversation_id_source_id` ON `usage_record` (`conversation_id`, `source`, `id`)"
+      },
+      {
+        "type": "index",
+        "name": "index_translation_history_create_at",
+        "tbl_name": "translation_history",
+        "sql": "CREATE INDEX `index_translation_history_create_at` ON `translation_history` (`create_at`)"
+      },
+      {
+        "type": "index",
+        "name": "index_message_fts_lookup_conversation",
+        "tbl_name": "message_fts_lookup",
+        "sql": "CREATE INDEX index_message_fts_lookup_conversation ON message_fts_lookup(conversation_id)"
+      },
+      {
+        "type": "index",
+        "name": "index_message_fts_lookup_node",
+        "tbl_name": "message_fts_lookup",
+        "sql": "CREATE INDEX index_message_fts_lookup_node ON message_fts_lookup(conversation_id, node_id)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_observation_outbox_conversationId",
+        "tbl_name": "serein_observation_outbox",
+        "sql": "CREATE INDEX index_serein_observation_outbox_conversationId ON serein_observation_outbox(conversationId)"
+      },
+      {
+        "type": "index",
+        "name": "index_serein_observation_outbox_destination",
+        "tbl_name": "serein_observation_outbox",
+        "sql": "CREATE INDEX index_serein_observation_outbox_destination ON serein_observation_outbox(destination)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts",
+        "tbl_name": "message_fts",
+        "sql": "CREATE VIRTUAL TABLE message_fts USING fts5(\n    text,\n    node_id UNINDEXED,\n    message_id UNINDEXED,\n    conversation_id UNINDEXED,\n    title UNINDEXED,\n    update_at UNINDEXED,\n    tokenize = 'simple'\n)"
+      }
+    ],
+    "columns": {
+      "android_metadata": [
+        {
+          "cid": 0,
+          "name": "locale",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "ConversationEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'0950e2dc-9bd5-4801-afa3-aa887aa36b4e'",
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "nodes",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "update_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "suggestions",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'[]'",
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "is_pinned",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "custom_system_prompt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "folder_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "compression_summaries",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'[]'",
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "compressed_node_ids",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'[]'",
+          "pk": 0
+        },
+        {
+          "cid": 12,
+          "name": "compression_revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 13,
+          "name": "send_compressed_summary",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "1",
+          "pk": 0
+        },
+        {
+          "cid": 14,
+          "name": "compressed_summary",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 15,
+          "name": "compression_history",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'[]'",
+          "pk": 0
+        },
+        {
+          "cid": 16,
+          "name": "conversation_config",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        }
+      ],
+      "MemoryEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "content",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "GenMediaEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "path",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "prompt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'image_generation'",
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "source_paths",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_node": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "node_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "messages",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "select_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "managed_files": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "folder",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "relative_path",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "display_name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "mime_type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "favorites": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "ref_key",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "ref_json",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "snapshot_json",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "meta_json",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "memory_bank": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "content",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "role",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "date_group",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "vector_status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "vector_retry_count",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "embedding",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "workspaces": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "root",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "shell_status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "last_access_at",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "tool_approvals",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'{}'",
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'LOCAL'",
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "ssh_config",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "conversation_folder": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "sort_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "workflows": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "description",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "enabled",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "1",
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "definitionJson",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "createdAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "updatedAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "lastRunAtMs",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "lastRunStatus",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "lastRunError",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "runsTodayCount",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "runsTodayDate",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        }
+      ],
+      "workflow_runs": [
+        {
+          "cid": 0,
+          "name": "rowId",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "workflowId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "firedAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "durationMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "errorMessage",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "outputSummary",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "stepsJson",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "ssh_hosts": [
+        {
+          "cid": 0,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "host",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "port",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "user",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "password",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "privateKey",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "passphrase",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "createdAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "security_audit_logs": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "timestamp",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "category",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "action",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "target",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "detail",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_reaction": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "actor",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "emoji",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "quote",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "room_master_table": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "identity_hash",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_data": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_idx": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_content": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "c5",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_docsize": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_config": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_raw_revision": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "role",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "createdAt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "finishedAt",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "recordedAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "origin",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "state",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_raw_head": [
+        {
+          "cid": 0,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "nodeId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 3
+        },
+        {
+          "cid": 3,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 4
+        },
+        {
+          "cid": 4,
+          "name": "revisionId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "nodeIndex",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "variantIndex",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "selected",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_scene": [
+        {
+          "cid": 0,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "body",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "cues",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "author",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "updatedAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "deleted",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_scene_revision": [
+        {
+          "cid": 0,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "sceneId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 3
+        },
+        {
+          "cid": 3,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "body",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "cues",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "author",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "recordedAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_hook_snapshot": [
+        {
+          "cid": 0,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "userMessageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "fingerprint",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "context",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "memoryIds",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "diagnostics",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'{}'",
+          "pk": 0
+        }
+      ],
+      "serein_hook_delivery": [
+        {
+          "cid": 0,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "receiptId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "configFingerprint",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "memoryIds",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "deliveredAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_upload": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "nodeId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "destination",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "sourceHash",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "payload",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "error",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "queuedAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "usage_record": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "source",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "provider_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "model_name",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "prompt_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "completion_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "cached_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "total_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 12,
+          "name": "usage_reported",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 13,
+          "name": "outcome",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "translation_history": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "translated_text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "target_language",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_lookup": [
+        {
+          "cid": 0,
+          "name": "fts_rowid",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "node_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "serein_observation_outbox": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistantId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "destination",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "payload",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "error",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ]
+    }
+  },
+  "kira": {
+    "label": "Kira 版",
+    "version": 43,
+    "identity": "89d2ec2b90348286c75d40b4dce21efc",
+    "schemas": [
+      {
+        "type": "table",
+        "name": "android_metadata",
+        "tbl_name": "android_metadata",
+        "sql": "CREATE TABLE android_metadata (locale TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "translation_history",
+        "tbl_name": "translation_history",
+        "sql": "CREATE TABLE `translation_history` (`id` TEXT NOT NULL, `source_text` TEXT NOT NULL, `translated_text` TEXT NOT NULL, `target_language` TEXT NOT NULL, `model_id` TEXT NOT NULL, `create_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "index",
+        "name": "index_translation_history_create_at",
+        "tbl_name": "translation_history",
+        "sql": "CREATE INDEX `index_translation_history_create_at` ON `translation_history` (`create_at`)"
+      },
+      {
+        "type": "table",
+        "name": "ConversationEntity",
+        "tbl_name": "ConversationEntity",
+        "sql": "CREATE TABLE `ConversationEntity` (`id` TEXT NOT NULL, `assistant_id` TEXT NOT NULL DEFAULT '0950e2dc-9bd5-4801-afa3-aa887aa36b4e', `title` TEXT NOT NULL, `nodes` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `update_at` INTEGER NOT NULL, `suggestions` TEXT NOT NULL DEFAULT '[]', `is_pinned` INTEGER NOT NULL DEFAULT 0, `custom_system_prompt` TEXT NOT NULL DEFAULT '', `folder_id` TEXT NOT NULL DEFAULT '', `context_compaction` TEXT NOT NULL DEFAULT '', `conversation_config` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "memory_vector",
+        "tbl_name": "memory_vector",
+        "sql": "CREATE TABLE `memory_vector` (`namespace` TEXT NOT NULL, `sliceId` TEXT NOT NULL, `scope` TEXT NOT NULL, `memoryId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `sourceHash` TEXT NOT NULL, `vector` TEXT NOT NULL, `vectorBytes` BLOB, PRIMARY KEY(`namespace`, `sliceId`), FOREIGN KEY(`memoryId`) REFERENCES `MemoryEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_vector_memoryId",
+        "tbl_name": "memory_vector",
+        "sql": "CREATE INDEX `index_memory_vector_memoryId` ON `memory_vector` (`memoryId`)"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_vector_scope_namespace",
+        "tbl_name": "memory_vector",
+        "sql": "CREATE INDEX `index_memory_vector_scope_namespace` ON `memory_vector` (`scope`, `namespace`)"
+      },
+      {
+        "type": "table",
+        "name": "history_memory_vector",
+        "tbl_name": "history_memory_vector",
+        "sql": "CREATE TABLE `history_memory_vector` (`namespace` TEXT NOT NULL, `sliceId` TEXT NOT NULL, `scope` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `nodeId` TEXT NOT NULL, `messageId` TEXT NOT NULL, `sourceHash` TEXT NOT NULL, `start` INTEGER NOT NULL, `end` INTEGER NOT NULL, `vector` TEXT NOT NULL, `vectorBytes` BLOB, PRIMARY KEY(`namespace`, `sliceId`), FOREIGN KEY(`nodeId`) REFERENCES `message_node`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_history_memory_vector_nodeId",
+        "tbl_name": "history_memory_vector",
+        "sql": "CREATE INDEX `index_history_memory_vector_nodeId` ON `history_memory_vector` (`nodeId`)"
+      },
+      {
+        "type": "index",
+        "name": "index_history_memory_vector_scope_namespace",
+        "tbl_name": "history_memory_vector",
+        "sql": "CREATE INDEX `index_history_memory_vector_scope_namespace` ON `history_memory_vector` (`scope`, `namespace`)"
+      },
+      {
+        "type": "index",
+        "name": "index_history_memory_vector_scope_namespace_sliceId",
+        "tbl_name": "history_memory_vector",
+        "sql": "CREATE INDEX `index_history_memory_vector_scope_namespace_sliceId` ON `history_memory_vector` (`scope`, `namespace`, `sliceId`)"
+      },
+      {
+        "type": "table",
+        "name": "memory_recall_snapshot",
+        "tbl_name": "memory_recall_snapshot",
+        "sql": "CREATE TABLE `memory_recall_snapshot` (`key` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `scope` TEXT NOT NULL, `messageId` TEXT NOT NULL, `messageHash` TEXT NOT NULL, `excerpts` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`key`), FOREIGN KEY(`conversationId`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_recall_snapshot_conversationId",
+        "tbl_name": "memory_recall_snapshot",
+        "sql": "CREATE INDEX `index_memory_recall_snapshot_conversationId` ON `memory_recall_snapshot` (`conversationId`)"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_recall_snapshot_createdAt",
+        "tbl_name": "memory_recall_snapshot",
+        "sql": "CREATE INDEX `index_memory_recall_snapshot_createdAt` ON `memory_recall_snapshot` (`createdAt`)"
+      },
+      {
+        "type": "table",
+        "name": "MemoryEntity",
+        "tbl_name": "MemoryEntity",
+        "sql": "CREATE TABLE `MemoryEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `assistant_id` TEXT NOT NULL, `content` TEXT NOT NULL, `source_kind` TEXT NOT NULL DEFAULT 'legacy', `source_conversation_id` TEXT NOT NULL DEFAULT '', `source_message_id` TEXT NOT NULL DEFAULT '', `revision` INTEGER NOT NULL DEFAULT 1, `created_at` INTEGER NOT NULL DEFAULT 0, `updated_at` INTEGER NOT NULL DEFAULT 0)"
+      },
+      {
+        "type": "table",
+        "name": "memory_organization_batch",
+        "tbl_name": "memory_organization_batch",
+        "sql": "CREATE TABLE `memory_organization_batch` (`id` TEXT NOT NULL, `owner` TEXT NOT NULL, `scope` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `messageIds` TEXT NOT NULL, `state` TEXT NOT NULL, `detail` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversationId`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_organization_batch_conversationId",
+        "tbl_name": "memory_organization_batch",
+        "sql": "CREATE INDEX `index_memory_organization_batch_conversationId` ON `memory_organization_batch` (`conversationId`)"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_organization_batch_owner",
+        "tbl_name": "memory_organization_batch",
+        "sql": "CREATE INDEX `index_memory_organization_batch_owner` ON `memory_organization_batch` (`owner`)"
+      },
+      {
+        "type": "table",
+        "name": "memory_evidence",
+        "tbl_name": "memory_evidence",
+        "sql": "CREATE TABLE `memory_evidence` (`memoryId` INTEGER NOT NULL, `owner` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `nodeId` TEXT NOT NULL, `messageId` TEXT NOT NULL, `sourceHash` TEXT NOT NULL, `role` TEXT NOT NULL, `sourceCreatedAt` TEXT NOT NULL, `quote` TEXT NOT NULL, PRIMARY KEY(`memoryId`), FOREIGN KEY(`memoryId`) REFERENCES `MemoryEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "table",
+        "name": "memory_index_attempt",
+        "tbl_name": "memory_index_attempt",
+        "sql": "CREATE TABLE `memory_index_attempt` (`owner` TEXT NOT NULL, `namespace` TEXT NOT NULL, `sliceId` TEXT NOT NULL, `batchId` TEXT NOT NULL, `state` TEXT NOT NULL, `detail` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`owner`, `namespace`, `sliceId`))"
+      },
+      {
+        "type": "index",
+        "name": "index_memory_index_attempt_owner_createdAt",
+        "tbl_name": "memory_index_attempt",
+        "sql": "CREATE INDEX `index_memory_index_attempt_owner_createdAt` ON `memory_index_attempt` (`owner`, `createdAt`)"
+      },
+      {
+        "type": "table",
+        "name": "GenMediaEntity",
+        "tbl_name": "GenMediaEntity",
+        "sql": "CREATE TABLE `GenMediaEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `path` TEXT NOT NULL, `model_id` TEXT NOT NULL, `prompt` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `type` TEXT NOT NULL DEFAULT 'image_generation', `source_paths` TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "media_creation_session",
+        "tbl_name": "media_creation_session",
+        "sql": "CREATE TABLE `media_creation_session` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `draft` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `update_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "media_creation_node",
+        "tbl_name": "media_creation_node",
+        "sql": "CREATE TABLE `media_creation_node` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `selected_record_id` TEXT NOT NULL, `create_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `media_creation_session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_media_creation_node_session_id",
+        "tbl_name": "media_creation_node",
+        "sql": "CREATE INDEX `index_media_creation_node_session_id` ON `media_creation_node` (`session_id`)"
+      },
+      {
+        "type": "table",
+        "name": "media_creation_record",
+        "tbl_name": "media_creation_record",
+        "sql": "CREATE TABLE `media_creation_record` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `node_id` TEXT NOT NULL, `provider_id` TEXT NOT NULL, `provider_name` TEXT NOT NULL, `model_id` TEXT NOT NULL, `kind` TEXT NOT NULL, `prompt` TEXT NOT NULL, `params` TEXT NOT NULL, `inputs` TEXT NOT NULL, `status` TEXT NOT NULL, `task_id` TEXT, `error` TEXT, `outputs` TEXT NOT NULL, `create_at` INTEGER NOT NULL, `update_at` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `media_creation_session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`node_id`) REFERENCES `media_creation_node`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_media_creation_record_session_id",
+        "tbl_name": "media_creation_record",
+        "sql": "CREATE INDEX `index_media_creation_record_session_id` ON `media_creation_record` (`session_id`)"
+      },
+      {
+        "type": "index",
+        "name": "index_media_creation_record_node_id",
+        "tbl_name": "media_creation_record",
+        "sql": "CREATE INDEX `index_media_creation_record_node_id` ON `media_creation_record` (`node_id`)"
+      },
+      {
+        "type": "table",
+        "name": "message_node",
+        "tbl_name": "message_node",
+        "sql": "CREATE TABLE `message_node` (`id` TEXT NOT NULL, `conversation_id` TEXT NOT NULL, `node_index` INTEGER NOT NULL, `messages` TEXT NOT NULL, `select_index` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversation_id`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_message_node_conversation_id",
+        "tbl_name": "message_node",
+        "sql": "CREATE INDEX `index_message_node_conversation_id` ON `message_node` (`conversation_id`)"
+      },
+      {
+        "type": "table",
+        "name": "managed_files",
+        "tbl_name": "managed_files",
+        "sql": "CREATE TABLE `managed_files` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `folder` TEXT NOT NULL, `relative_path` TEXT NOT NULL, `display_name` TEXT NOT NULL, `mime_type` TEXT NOT NULL, `size_bytes` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)"
+      },
+      {
+        "type": "index",
+        "name": "index_managed_files_relative_path",
+        "tbl_name": "managed_files",
+        "sql": "CREATE UNIQUE INDEX `index_managed_files_relative_path` ON `managed_files` (`relative_path`)"
+      },
+      {
+        "type": "index",
+        "name": "index_managed_files_folder",
+        "tbl_name": "managed_files",
+        "sql": "CREATE INDEX `index_managed_files_folder` ON `managed_files` (`folder`)"
+      },
+      {
+        "type": "table",
+        "name": "favorites",
+        "tbl_name": "favorites",
+        "sql": "CREATE TABLE `favorites` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `ref_key` TEXT NOT NULL, `ref_json` TEXT NOT NULL, `snapshot_json` TEXT NOT NULL, `meta_json` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_ref_key",
+        "tbl_name": "favorites",
+        "sql": "CREATE UNIQUE INDEX `index_favorites_ref_key` ON `favorites` (`ref_key`)"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_type",
+        "tbl_name": "favorites",
+        "sql": "CREATE INDEX `index_favorites_type` ON `favorites` (`type`)"
+      },
+      {
+        "type": "index",
+        "name": "index_favorites_created_at",
+        "tbl_name": "favorites",
+        "sql": "CREATE INDEX `index_favorites_created_at` ON `favorites` (`created_at`)"
+      },
+      {
+        "type": "table",
+        "name": "memory_bank",
+        "tbl_name": "memory_bank",
+        "sql": "CREATE TABLE `memory_bank` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `content` TEXT NOT NULL, `type` TEXT NOT NULL, `conversation_id` TEXT, `assistant_id` TEXT, `role` TEXT, `created_at` INTEGER NOT NULL, `date_group` TEXT, `vector_status` TEXT NOT NULL, `vector_retry_count` INTEGER NOT NULL, `embedding` TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "workspaces",
+        "tbl_name": "workspaces",
+        "sql": "CREATE TABLE `workspaces` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `root` TEXT NOT NULL, `shell_status` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `last_access_at` INTEGER, `tool_approvals` TEXT NOT NULL DEFAULT '{}', `type` TEXT NOT NULL DEFAULT 'LOCAL', `ssh_config` TEXT, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "index",
+        "name": "index_workspaces_root",
+        "tbl_name": "workspaces",
+        "sql": "CREATE UNIQUE INDEX `index_workspaces_root` ON `workspaces` (`root`)"
+      },
+      {
+        "type": "index",
+        "name": "index_workspaces_updated_at",
+        "tbl_name": "workspaces",
+        "sql": "CREATE INDEX `index_workspaces_updated_at` ON `workspaces` (`updated_at`)"
+      },
+      {
+        "type": "table",
+        "name": "conversation_folder",
+        "tbl_name": "conversation_folder",
+        "sql": "CREATE TABLE `conversation_folder` (`id` TEXT NOT NULL, `assistant_id` TEXT NOT NULL, `name` TEXT NOT NULL, `sort_index` INTEGER NOT NULL DEFAULT 0, `create_at` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "index",
+        "name": "index_conversation_folder_assistant_id",
+        "tbl_name": "conversation_folder",
+        "sql": "CREATE INDEX `index_conversation_folder_assistant_id` ON `conversation_folder` (`assistant_id`)"
+      },
+      {
+        "type": "table",
+        "name": "workflows",
+        "tbl_name": "workflows",
+        "sql": "CREATE TABLE `workflows` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `enabled` INTEGER NOT NULL DEFAULT 1, `definitionJson` TEXT NOT NULL, `createdAtMs` INTEGER NOT NULL, `updatedAtMs` INTEGER NOT NULL, `lastRunAtMs` INTEGER, `lastRunStatus` TEXT, `lastRunError` TEXT, `runsTodayCount` INTEGER NOT NULL DEFAULT 0, `runsTodayDate` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))"
+      },
+      {
+        "type": "table",
+        "name": "workflow_runs",
+        "tbl_name": "workflow_runs",
+        "sql": "CREATE TABLE `workflow_runs` (`rowId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workflowId` TEXT NOT NULL, `firedAtMs` INTEGER NOT NULL, `status` TEXT NOT NULL, `durationMs` INTEGER NOT NULL, `errorMessage` TEXT)"
+      },
+      {
+        "type": "index",
+        "name": "index_workflow_runs_workflowId_firedAtMs",
+        "tbl_name": "workflow_runs",
+        "sql": "CREATE INDEX `index_workflow_runs_workflowId_firedAtMs` ON `workflow_runs` (`workflowId`, `firedAtMs`)"
+      },
+      {
+        "type": "table",
+        "name": "ssh_hosts",
+        "tbl_name": "ssh_hosts",
+        "sql": "CREATE TABLE `ssh_hosts` (`name` TEXT NOT NULL, `host` TEXT NOT NULL, `port` INTEGER NOT NULL, `user` TEXT NOT NULL, `password` TEXT, `privateKey` TEXT, `passphrase` TEXT, `createdAtMs` INTEGER NOT NULL, PRIMARY KEY(`name`))"
+      },
+      {
+        "type": "table",
+        "name": "security_audit_logs",
+        "tbl_name": "security_audit_logs",
+        "sql": "CREATE TABLE `security_audit_logs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `target` TEXT NOT NULL, `detail` TEXT NOT NULL, `status` TEXT NOT NULL)"
+      },
+      {
+        "type": "index",
+        "name": "index_security_audit_logs_timestamp",
+        "tbl_name": "security_audit_logs",
+        "sql": "CREATE INDEX `index_security_audit_logs_timestamp` ON `security_audit_logs` (`timestamp`)"
+      },
+      {
+        "type": "table",
+        "name": "message_reaction",
+        "tbl_name": "message_reaction",
+        "sql": "CREATE TABLE `message_reaction` (`id` TEXT NOT NULL, `conversationId` TEXT NOT NULL, `messageId` TEXT NOT NULL, `actor` TEXT NOT NULL, `emoji` TEXT NOT NULL, `quote` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`conversationId`) REFERENCES `ConversationEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+      },
+      {
+        "type": "index",
+        "name": "index_message_reaction_conversationId",
+        "tbl_name": "message_reaction",
+        "sql": "CREATE INDEX `index_message_reaction_conversationId` ON `message_reaction` (`conversationId`)"
+      },
+      {
+        "type": "table",
+        "name": "usage_record",
+        "tbl_name": "usage_record",
+        "sql": "CREATE TABLE `usage_record` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `created_at` INTEGER NOT NULL, `source` TEXT NOT NULL, `provider_id` TEXT, `model_id` TEXT, `model_name` TEXT, `assistant_id` TEXT, `conversation_id` TEXT, `prompt_tokens` INTEGER NOT NULL, `completion_tokens` INTEGER NOT NULL, `cached_tokens` INTEGER NOT NULL)"
+      },
+      {
+        "type": "index",
+        "name": "index_usage_record_created_at",
+        "tbl_name": "usage_record",
+        "sql": "CREATE INDEX `index_usage_record_created_at` ON `usage_record` (`created_at`)"
+      },
+      {
+        "type": "index",
+        "name": "index_usage_record_conversation_id_source_id",
+        "tbl_name": "usage_record",
+        "sql": "CREATE INDEX `index_usage_record_conversation_id_source_id` ON `usage_record` (`conversation_id`, `source`, `id`)"
+      },
+      {
+        "type": "table",
+        "name": "room_master_table",
+        "tbl_name": "room_master_table",
+        "sql": "CREATE TABLE room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts",
+        "tbl_name": "message_fts",
+        "sql": "CREATE VIRTUAL TABLE message_fts USING fts5(\n    text,\n    node_id UNINDEXED,\n    message_id UNINDEXED,\n    conversation_id UNINDEXED,\n    title UNINDEXED,\n    update_at UNINDEXED,\n    tokenize = 'simple'\n)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_data",
+        "tbl_name": "message_fts_data",
+        "sql": "CREATE TABLE 'message_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_idx",
+        "tbl_name": "message_fts_idx",
+        "sql": "CREATE TABLE 'message_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_content",
+        "tbl_name": "message_fts_content",
+        "sql": "CREATE TABLE 'message_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4, c5)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_docsize",
+        "tbl_name": "message_fts_docsize",
+        "sql": "CREATE TABLE 'message_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_config",
+        "tbl_name": "message_fts_config",
+        "sql": "CREATE TABLE 'message_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "message_fts_rowid",
+        "tbl_name": "message_fts_rowid",
+        "sql": "CREATE TABLE message_fts_rowid(fts_rowid INTEGER PRIMARY KEY, conversation_id TEXT NOT NULL, node_id TEXT NOT NULL)"
+      },
+      {
+        "type": "index",
+        "name": "index_message_fts_rowid_conversation_node",
+        "tbl_name": "message_fts_rowid",
+        "sql": "CREATE INDEX index_message_fts_rowid_conversation_node ON message_fts_rowid(conversation_id, node_id)"
+      }
+    ],
+    "columns": {
+      "android_metadata": [
+        {
+          "cid": 0,
+          "name": "locale",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "translation_history": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "source_text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "translated_text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "target_language",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "ConversationEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'0950e2dc-9bd5-4801-afa3-aa887aa36b4e'",
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "nodes",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "update_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "suggestions",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'[]'",
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "is_pinned",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "custom_system_prompt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "folder_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "context_compaction",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "conversation_config",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        }
+      ],
+      "memory_vector": [
+        {
+          "cid": 0,
+          "name": "namespace",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "sliceId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "scope",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "memoryId",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "sourceHash",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "vector",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "vectorBytes",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "history_memory_vector": [
+        {
+          "cid": 0,
+          "name": "namespace",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "sliceId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "scope",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "nodeId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "sourceHash",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "start",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "end",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "vector",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "vectorBytes",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "memory_recall_snapshot": [
+        {
+          "cid": 0,
+          "name": "key",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "scope",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "messageHash",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "excerpts",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "MemoryEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "content",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "source_kind",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'legacy'",
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "source_conversation_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "source_message_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "revision",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "1",
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        }
+      ],
+      "memory_organization_batch": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "owner",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "scope",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "messageIds",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "state",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "detail",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "memory_evidence": [
+        {
+          "cid": 0,
+          "name": "memoryId",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "owner",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "nodeId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "sourceHash",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "role",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "sourceCreatedAt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "quote",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "memory_index_attempt": [
+        {
+          "cid": 0,
+          "name": "owner",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "namespace",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "sliceId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 3
+        },
+        {
+          "cid": 3,
+          "name": "batchId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "state",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "detail",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "GenMediaEntity": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "path",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "prompt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'image_generation'",
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "source_paths",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "media_creation_session": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "draft",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "update_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "media_creation_node": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "session_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "selected_record_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "media_creation_record": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "session_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "node_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "provider_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "provider_name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "kind",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "prompt",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "params",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "inputs",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "task_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 12,
+          "name": "error",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 13,
+          "name": "outputs",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 14,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 15,
+          "name": "update_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_node": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "node_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "messages",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "select_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "managed_files": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "folder",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "relative_path",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "display_name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "mime_type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "size_bytes",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "favorites": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "ref_key",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "ref_json",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "snapshot_json",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "meta_json",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "memory_bank": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "content",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "role",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "date_group",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "vector_status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "vector_retry_count",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "embedding",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "workspaces": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "root",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "shell_status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "updated_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "last_access_at",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "tool_approvals",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'{}'",
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "'LOCAL'",
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "ssh_config",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "conversation_folder": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "sort_index",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "create_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "workflows": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "description",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "enabled",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "1",
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "definitionJson",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "createdAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "updatedAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "lastRunAtMs",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "lastRunStatus",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "lastRunError",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "runsTodayCount",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": "0",
+          "pk": 0
+        },
+        {
+          "cid": 11,
+          "name": "runsTodayDate",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "''",
+          "pk": 0
+        }
+      ],
+      "workflow_runs": [
+        {
+          "cid": 0,
+          "name": "rowId",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "workflowId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "firedAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "durationMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "errorMessage",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "ssh_hosts": [
+        {
+          "cid": 0,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "host",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "port",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "user",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "password",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "privateKey",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "passphrase",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "createdAtMs",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "security_audit_logs": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "timestamp",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "category",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "action",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "target",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "detail",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_reaction": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversationId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "messageId",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "actor",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "emoji",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "quote",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "createdAt",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "usage_record": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "created_at",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "source",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "provider_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "model_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "model_name",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "assistant_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "prompt_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "completion_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 10,
+          "name": "cached_tokens",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "room_master_table": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "identity_hash",
+          "type": "TEXT",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_data": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_idx": [
+        {
+          "cid": 0,
+          "name": "segid",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "term",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        },
+        {
+          "cid": 2,
+          "name": "pgno",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_content": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "c0",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "c1",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "c2",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "c3",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "c4",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "c5",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_docsize": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "sz",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_config": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "message_fts_rowid": [
+        {
+          "cid": 0,
+          "name": "fts_rowid",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "conversation_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "node_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ]
+    }
+  }
+}
